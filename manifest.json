@@ -6,8 +6,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F7F3E3",
-  "theme_color": "#173A5E",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
   "lang": "es-AR",
   "categories": ["music", "entertainment", "news"],
   "icons": [

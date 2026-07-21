@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#173A5E">
+<meta name="theme-color" content="#0B0F14">
 <meta name="description" content="Escuchá AM 610 General San Martín en vivo, mirá la programación y encontrá nuestros contactos.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM 610">
@@ -18,16 +18,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
+    --bg: #0B0F14;
+    --bg-elev: #12181F;
+    --bg-elev-2: #1B232C;
+    --line: rgba(255,255,255,0.08);
     --celeste: #6FA8DC;
-    --celeste-deep: #2E5F8A;
-    --celeste-ink: #173A5E;
-    --crema: #F7F3E3;
-    --tinta: #17181A;
+    --celeste-bright: #9AC7EE;
+    --celeste-dim: rgba(111,168,220,0.16);
     --sol: #F2A93B;
-    --sol-deep: #C97C1B;
-    --card: #FFFFFF;
-    --line: rgba(23,24,26,0.10);
-    --radius: 20px;
+    --sol-deep: #D98F1E;
+    --text: #F3F5F7;
+    --text-dim: #9AA5B1;
+    --text-faint: #5C6672;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -35,399 +37,350 @@
   html,body{margin:0;padding:0;}
   body{
     font-family:'Work Sans', sans-serif;
-    background: var(--crema);
-    color: var(--tinta);
+    background: var(--bg);
+    color: var(--text);
     -webkit-font-smoothing:antialiased;
     overscroll-behavior:none;
   }
-  .display{font-family:'Big Shoulders Display', sans-serif; text-transform:uppercase; letter-spacing:0.01em;}
+  .display{font-family:'Big Shoulders Display', sans-serif; text-transform:uppercase;}
 
   #app{
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
-    background: var(--crema);
+    background: var(--bg);
     display:flex;
     flex-direction:column;
     position:relative;
-    box-shadow: 0 0 60px rgba(0,0,0,0.08);
   }
 
-  /* ---------- TOP BAR ---------- */
   header.topbar{
     display:flex;
     align-items:center;
-    gap:12px;
-    padding: calc(14px + var(--safe-top)) 18px 14px;
-    background: var(--celeste-ink);
-    color:#fff;
+    gap:10px;
+    padding: calc(12px + var(--safe-top)) 18px 12px;
   }
-  header.topbar img{
-    height:38px;
-    width:auto;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+  header.topbar .chip{
+    width:34px; height:34px;
+    border-radius:9px;
     background:#fff;
-    border-radius:8px;
-    padding:2px 4px;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
   }
-  header.topbar .station-meta{line-height:1.15;}
-  header.topbar .station-meta .name{
-    font-family:'Big Shoulders Display', sans-serif;
-    font-weight:900;
-    font-size:20px;
-    letter-spacing:0.02em;
-    text-transform:uppercase;
-  }
-  header.topbar .station-meta .loc{
-    font-size:11px;
-    opacity:0.75;
-    letter-spacing:0.03em;
-  }
+  header.topbar .chip img{width:100%; height:100%; object-fit:contain;}
+  header.topbar .station-meta{line-height:1.1;}
+  header.topbar .station-meta .name{font-size:13px; font-weight:700; letter-spacing:0.02em;}
+  header.topbar .station-meta .loc{font-size:11px; color: var(--text-dim);}
   header.topbar .live-pill{
     margin-left:auto;
     display:flex;
     align-items:center;
     gap:6px;
-    background: rgba(255,255,255,0.12);
-    border:1px solid rgba(255,255,255,0.25);
+    background: var(--bg-elev);
+    border:1px solid var(--line);
     padding:5px 10px 5px 8px;
     border-radius:999px;
-    font-size:11px;
-    font-weight:600;
+    font-size:10.5px;
+    font-weight:700;
     letter-spacing:0.04em;
+    color: var(--text-dim);
   }
   header.topbar .live-pill .dot{
-    width:7px;height:7px;border-radius:50%;
+    width:6px;height:6px;border-radius:50%;
     background:#ff4d4d;
-    box-shadow:0 0 0 0 rgba(255,77,77,0.6);
     animation: pulse 1.8s infinite;
   }
   @keyframes pulse{
     0%{box-shadow:0 0 0 0 rgba(255,77,77,0.55);}
-    70%{box-shadow:0 0 0 7px rgba(255,77,77,0);}
+    70%{box-shadow:0 0 0 6px rgba(255,77,77,0);}
     100%{box-shadow:0 0 0 0 rgba(255,77,77,0);}
   }
 
-  /* ---------- VIEWS ---------- */
   main{
     flex:1;
     overflow-y:auto;
-    padding-bottom: 96px;
+    padding-bottom: 108px;
     -webkit-overflow-scrolling:touch;
   }
   .view{display:none; animation: fadein .35s ease;}
   .view.active{display:block;}
   @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 
-  /* ---------- HERO / PLAYER ---------- */
   .hero{
-    background:
-      radial-gradient(120% 90% at 15% -10%, rgba(111,168,220,0.55), transparent 55%),
-      linear-gradient(180deg, var(--celeste-ink) 0%, var(--celeste-deep) 100%);
-    color:#fff;
-    padding: 28px 20px 26px;
+    padding: 10px 24px 8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
     position:relative;
-    overflow:hidden;
   }
-  .hero::after{
-    content:"";
+  .disc-wrap{ position:relative; width:190px; height:190px; margin: 6px 0 22px; }
+  .disc-glow{
+    position:absolute; inset:-30px;
+    background: radial-gradient(circle, rgba(111,168,220,0.35) 0%, rgba(111,168,220,0) 68%);
+    border-radius:50%;
+    filter: blur(2px);
+    transition: opacity .4s ease;
+    opacity:0.5;
+  }
+  .disc-glow.playing{opacity:1;}
+  .disc{
     position:absolute; inset:0;
-    background-image: repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 34px);
-    pointer-events:none;
+    border-radius:50%;
+    background: var(--bg-elev);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+    animation: spin 14s linear infinite;
+    animation-play-state: paused;
+  }
+  .disc.playing{animation-play-state: running;}
+  .disc::before{
+    content:"";
+    position:absolute; inset:-1px;
+    border-radius:50%;
+    padding:1px;
+    background: conic-gradient(from 0deg, var(--celeste), transparent 30%, transparent 70%, var(--celeste));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity:0.7;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .disc-inner{
+    width:66%; height:66%;
+    border-radius:50%;
+    background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    box-shadow: inset 0 0 0 8px var(--bg-elev-2);
+  }
+  .disc-inner img{width:78%; height:78%; object-fit:contain;}
+  .disc-pin{
+    position:absolute; top:50%; left:50%;
+    width:14px; height:14px;
+    background: var(--bg);
+    border:2px solid var(--celeste);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
   }
 
   .tagline{
-    font-size:12.5px;
-    letter-spacing:0.08em;
+    font-size:11.5px;
+    letter-spacing:0.1em;
     text-transform:uppercase;
-    opacity:0.8;
-    margin:0 0 4px;
-    font-weight:600;
+    color: var(--celeste-bright);
+    margin:0 0 6px;
+    font-weight:700;
   }
   .freq-title{
     font-family:'Big Shoulders Display', sans-serif;
     font-weight:900;
-    font-size:56px;
-    line-height:0.9;
-    margin:0;
-    letter-spacing:0.01em;
+    font-size:34px;
+    line-height:1;
+    margin:0 0 4px;
   }
-  .freq-title small{
-    font-size:20px;
-    font-weight:700;
-    display:block;
-    opacity:0.85;
-    margin-top:4px;
-    letter-spacing:0.02em;
-  }
+  .freq-sub{ font-size:13px; color: var(--text-dim); margin:0; }
 
-  /* Tuning dial signature element */
-  .dial-wrap{
-    margin-top:22px;
-    background: rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.16);
-    border-radius:16px;
-    padding:14px 16px 12px;
-    backdrop-filter: blur(3px);
-  }
-  .dial-track{
-    position:relative;
-    height:46px;
-    overflow:hidden;
-  }
-  .dial-ticks{
-    position:absolute;
-    left:-10px; right:-10px; top:8px;
-    display:flex;
-    justify-content:space-between;
-  }
-  .dial-ticks span{
-    width:1.5px; height:14px;
-    background: rgba(255,255,255,0.35);
-  }
-  .dial-ticks span.major{height:22px; width:2px; background:rgba(255,255,255,0.6);}
-  .dial-labels{
-    display:flex;
-    justify-content:space-between;
-    font-size:9.5px;
-    color:rgba(255,255,255,0.55);
-    margin-top:2px;
-    font-family:'Big Shoulders Display', sans-serif;
-    letter-spacing:0.03em;
-  }
-  .dial-needle{
-    position:absolute;
-    top:0; left:50%;
-    transform:translateX(-50%);
-    width:3px; height:30px;
-    background: var(--sol);
-    border-radius:2px;
-    box-shadow: 0 0 10px 2px rgba(242,169,59,0.7);
-  }
-  .dial-needle::after{
-    content:"610";
-    position:absolute;
-    top:-19px; left:50%;
-    transform:translateX(-50%);
-    font-family:'Big Shoulders Display', sans-serif;
-    font-weight:900;
-    font-size:13px;
-    color:var(--sol);
-    white-space:nowrap;
-  }
-
-  .player-row{
+  .wave{
     display:flex;
     align-items:center;
-    gap:16px;
-    margin-top:22px;
+    justify-content:center;
+    gap:3px;
+    height:34px;
+    margin:22px 0 6px;
+    width:100%;
   }
+  .wave span{
+    width:3px;
+    border-radius:2px;
+    background: var(--text-faint);
+    height:6px;
+    transition: background .3s ease;
+  }
+  .wave.playing span{
+    background: var(--celeste);
+    animation: wv 1s ease-in-out infinite;
+  }
+  .wave span:nth-child(odd){animation-delay:0.1s;}
+  .wave span:nth-child(3n){animation-delay:0.25s;}
+  .wave span:nth-child(4n){animation-delay:0.4s;}
+  @keyframes wv{
+    0%,100%{height:6px;}
+    50%{height:30px;}
+  }
+
+  .status-line{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color: var(--sol);
+    height:16px;
+    margin-bottom:18px;
+  }
+  .status-line.buffering{color:var(--text-dim);}
+
   .play-btn{
-    width:64px; height:64px;
+    width:68px; height:68px;
     border-radius:50%;
-    background: var(--sol);
+    background: var(--celeste);
     border:none;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
-    flex-shrink:0;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 10px 26px rgba(111,168,220,0.35);
     transition: transform .15s ease;
   }
   .play-btn:active{transform:scale(0.92);}
-  .play-btn svg{width:26px; height:26px; fill:var(--celeste-ink);}
+  .play-btn svg{width:26px; height:26px; fill:#0B0F14;}
 
-  .now-playing{flex:1; min-width:0;}
-  .now-playing .status{
-    font-size:11px;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    font-weight:700;
-    color:var(--sol);
-    margin:0 0 3px;
-  }
-  .now-playing .status.buffering{color:#fff; opacity:0.7;}
-  .now-playing .title{
-    font-size:15px;
-    font-weight:600;
-    margin:0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
+  .section-pad{padding:8px 20px 4px;}
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
+  .section-head h2{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color: var(--text-dim); margin:0; }
+  .section-head .link{ font-size:12px; color: var(--celeste-bright); font-weight:600; cursor:pointer; }
 
-  .eq{
+  .onair-card{
+    margin:0 20px 4px;
+    background: linear-gradient(135deg, var(--celeste-dim), transparent);
+    border:1px solid rgba(111,168,220,0.3);
+    border-radius:16px;
+    padding:14px 16px;
     display:flex;
-    align-items:flex-end;
-    gap:3px;
-    height:22px;
-    margin-left:auto;
+    align-items:center;
+    gap:12px;
+  }
+  .onair-card .badge{
+    background: var(--sol);
+    color:#0B0F14;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:0.04em;
+    padding:3px 7px;
+    border-radius:5px;
     flex-shrink:0;
   }
-  .eq span{
-    width:3px;
-    background: var(--sol);
-    border-radius:2px;
-    height:6px;
-    opacity:0.4;
-  }
-  .eq.playing span{
-    opacity:1;
-    animation: eqbar 0.9s ease-in-out infinite;
-  }
-  .eq span:nth-child(1){animation-delay:0s;}
-  .eq span:nth-child(2){animation-delay:.15s;}
-  .eq span:nth-child(3){animation-delay:.3s;}
-  .eq span:nth-child(4){animation-delay:.45s;}
-  @keyframes eqbar{
-    0%,100%{height:6px;}
-    50%{height:22px;}
-  }
+  .onair-card .info .sname{font-size:14px; font-weight:700; margin:0 0 2px;}
+  .onair-card .info .shost{font-size:11.5px; color:var(--text-dim); margin:0;}
 
-  /* ---------- SECTION HEADINGS ---------- */
-  .section-pad{padding:22px 20px 4px;}
-  .section-head{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    margin-bottom:14px;
-  }
-  .section-head h2{
-    font-family:'Big Shoulders Display', sans-serif;
-    font-weight:800;
-    font-size:24px;
-    text-transform:uppercase;
-    margin:0;
-    letter-spacing:0.01em;
-  }
-  .section-head .sub{
-    font-size:12px;
-    color:var(--celeste-deep);
-    font-weight:600;
-  }
-
-  /* ---------- SCHEDULE ---------- */
-  .day-tabs{
-    display:flex;
-    gap:6px;
-    padding:0 20px 14px;
-    overflow-x:auto;
-    scrollbar-width:none;
-  }
+  .day-tabs{ display:flex; gap:8px; padding:0 20px 14px; overflow-x:auto; scrollbar-width:none; }
   .day-tabs::-webkit-scrollbar{display:none;}
   .day-tabs button{
     flex-shrink:0;
     border:1px solid var(--line);
-    background: var(--card);
-    color: var(--tinta);
+    background: var(--bg-elev);
+    color: var(--text-dim);
     font-family:'Work Sans', sans-serif;
     font-weight:600;
     font-size:12.5px;
-    padding:8px 14px;
+    padding:8px 16px;
     border-radius:999px;
     cursor:pointer;
   }
-  .day-tabs button.active{
-    background: var(--celeste-ink);
-    border-color:var(--celeste-ink);
-    color:#fff;
-  }
+  .day-tabs button.active{ background: var(--celeste); border-color:var(--celeste); color:#0B0F14; }
 
-  .show-list{padding:0 20px; display:flex; flex-direction:column; gap:10px;}
+  .show-list{padding:0 20px; display:flex; flex-direction:column; gap:8px;}
   .show-card{
-    background: var(--card);
+    background: var(--bg-elev);
     border:1px solid var(--line);
-    border-radius:16px;
-    padding:14px 16px;
+    border-radius:14px;
+    padding:13px 16px;
     display:flex;
     gap:14px;
     align-items:center;
   }
-  .show-card .time{
-    font-family:'Big Shoulders Display', sans-serif;
-    font-weight:800;
-    font-size:16px;
-    color: var(--celeste-deep);
-    min-width:64px;
-    line-height:1.1;
-  }
-  .show-card .time small{display:block; font-size:10px; color:var(--sol-deep); font-weight:700; letter-spacing:0.03em;}
+  .show-card .time{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:15px; color: var(--celeste-bright); min-width:58px; line-height:1.15; }
+  .show-card .time small{display:block; font-size:9.5px; color:var(--text-faint); font-weight:700;}
   .show-card .info{flex:1; min-width:0;}
-  .show-card .info .sname{font-weight:700; font-size:14.5px; margin:0 0 2px;}
-  .show-card .info .shost{font-size:12px; color:#6b6b6b; margin:0;}
-  .show-card.onair{
-    border-color: var(--sol);
-    background: linear-gradient(90deg, rgba(242,169,59,0.10), rgba(242,169,59,0));
-  }
-  .show-card.onair .time{color:var(--sol-deep);}
+  .show-card .info .sname{font-weight:700; font-size:14px; margin:0 0 2px; color:var(--text);}
+  .show-card .info .shost{font-size:11.5px; color:var(--text-dim); margin:0;}
+  .show-card.onair{border-color: var(--sol);}
+  .show-card.onair .time{color:var(--sol);}
   .onair-badge{
-    font-size:9px;
-    font-weight:800;
-    letter-spacing:0.05em;
-    background:var(--sol);
-    color:var(--celeste-ink);
-    padding:2px 6px;
-    border-radius:5px;
-    margin-left:6px;
-    vertical-align:middle;
+    font-size:8.5px; font-weight:800; letter-spacing:0.04em;
+    background:var(--sol); color:#0B0F14;
+    padding:2px 6px; border-radius:5px; margin-left:6px; vertical-align:middle;
   }
 
   .note-card{
     margin:16px 20px 0;
-    background: rgba(111,168,220,0.14);
-    border:1px dashed var(--celeste-deep);
+    background: var(--bg-elev);
+    border:1px dashed var(--line);
     border-radius:14px;
     padding:12px 14px;
-    font-size:12px;
-    color: var(--celeste-ink);
+    font-size:11.5px;
+    color: var(--text-dim);
     line-height:1.5;
   }
 
-  /* ---------- CONTACT ---------- */
-  .contact-list{padding:0 20px; display:flex; flex-direction:column; gap:10px;}
+  .contact-grid{ padding:0 20px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
   .contact-card{
-    background: var(--card);
+    background: var(--bg-elev);
     border:1px solid var(--line);
     border-radius:16px;
-    padding:14px 16px;
-    display:flex;
-    align-items:center;
-    gap:14px;
+    padding:16px 14px;
     text-decoration:none;
     color:inherit;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
   }
-  .contact-card .icon{
-    width:42px; height:42px;
-    border-radius:12px;
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-  }
-  .contact-card .icon svg{width:20px; height:20px;}
-  .contact-card .txt .label{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#8a8a8a; font-weight:700; margin:0 0 2px;}
-  .contact-card .txt .value{font-size:14.5px; font-weight:600; margin:0;}
-  .ig .icon{background:#F2A93B22;} .ig svg{fill:#C97C1B;}
-  .fb .icon{background:#6FA8DC22;} .fb svg{fill:#2E5F8A;}
-  .wa .icon{background:#25D36622;} .wa svg{fill:#1EA855;}
-  .em .icon{background:#17181A11;} .em svg{fill:#17181A;}
+  .contact-card .icon{ width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .contact-card .icon svg{width:19px; height:19px;}
+  .contact-card .label{font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); font-weight:700; margin:0 0 2px;}
+  .contact-card .value{font-size:13px; font-weight:600; margin:0; color:var(--text); word-break:break-word;}
+  .ig .icon{background:rgba(242,169,59,0.14);} .ig svg{fill:var(--sol);}
+  .fb .icon{background:rgba(111,168,220,0.14);} .fb svg{fill:var(--celeste-bright);}
+  .wa .icon{background:rgba(37,211,102,0.14);} .wa svg{fill:#3ddc84;}
+  .em .icon{background:rgba(255,255,255,0.08);} .em svg{fill:var(--text);}
 
-  .studio-card{
-    margin:18px 20px 0;
-    border-radius:16px;
-    overflow:hidden;
-    border:1px solid var(--line);
-  }
+  .studio-card{ margin:16px 20px 0; border-radius:16px; overflow:hidden; border:1px solid var(--line); }
   .studio-card .map-fake{
-    height:120px;
-    background: linear-gradient(135deg, var(--celeste) 0%, var(--celeste-deep) 100%);
+    height:110px;
+    background: linear-gradient(135deg, var(--bg-elev-2) 0%, var(--bg-elev) 100%);
     display:flex; align-items:center; justify-content:center;
   }
-  .studio-card .map-fake svg{width:30px; height:30px; fill:#fff; opacity:0.9;}
-  .studio-card .addr{padding:14px 16px; background:var(--card);}
-  .studio-card .addr .label{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#8a8a8a; font-weight:700; margin:0 0 3px;}
-  .studio-card .addr .value{font-size:14px; font-weight:600; margin:0;}
+  .studio-card .map-fake svg{width:26px; height:26px; fill:var(--celeste);}
+  .studio-card .addr{padding:14px 16px; background:var(--bg-elev);}
+  .studio-card .addr .label{font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); font-weight:700; margin:0 0 3px;}
+  .studio-card .addr .value{font-size:13.5px; font-weight:600; margin:0;}
 
-  /* ---------- BOTTOM NAV ---------- */
+  .mini-player{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:64px;
+    width:calc(100% - 24px);
+    max-width:456px;
+    background: var(--bg-elev-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:9px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    z-index:45;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.4);
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .mini-player.show{opacity:1; pointer-events:auto;}
+  .mini-player .chip{width:32px; height:32px; border-radius:8px; background:#fff; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center;}
+  .mini-player .chip img{width:100%; height:100%; object-fit:contain;}
+  .mini-player .txt{flex:1; min-width:0;}
+  .mini-player .txt .t1{font-size:11px; font-weight:700; color:var(--sol);}
+  .mini-player .txt .t2{font-size:11.5px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .mini-player .mini-eq{display:flex; align-items:flex-end; gap:2px; height:16px;}
+  .mini-player .mini-eq span{width:2.5px; background:var(--celeste); border-radius:2px; height:4px; animation: wv 1s ease-in-out infinite;}
+  .mini-player .mini-btn{
+    width:34px; height:34px; border-radius:50%; background: var(--celeste); border:none;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;
+  }
+  .mini-player .mini-btn svg{width:15px; height:15px; fill:#0B0F14;}
+
   nav.bottomnav{
     position:fixed;
     left:50%;
@@ -435,30 +388,21 @@
     bottom:0;
     width:100%;
     max-width:480px;
-    background: rgba(247,243,227,0.92);
-    backdrop-filter: blur(10px);
+    background: rgba(11,15,20,0.9);
+    backdrop-filter: blur(14px);
     border-top:1px solid var(--line);
     display:flex;
-    padding: 8px 8px calc(8px + var(--safe-bottom));
+    padding: 8px 8px calc(6px + var(--safe-bottom));
     z-index:50;
   }
   nav.bottomnav button{
-    flex:1;
-    background:none;
-    border:none;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:4px;
-    padding:6px 0 2px;
-    cursor:pointer;
-    color:#8d8d85;
-    font-family:'Work Sans', sans-serif;
+    flex:1; background:none; border:none; display:flex; flex-direction:column;
+    align-items:center; gap:4px; padding:6px 0 2px; cursor:pointer;
+    color: var(--text-faint); font-family:'Work Sans', sans-serif;
   }
-  nav.bottomnav button svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8;}
-  nav.bottomnav button span{font-size:10.5px; font-weight:600; letter-spacing:0.01em;}
-  nav.bottomnav button.active{color: var(--celeste-ink);}
-  nav.bottomnav button.active svg{fill: var(--sol); stroke:var(--celeste-ink);}
+  nav.bottomnav button svg{width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8;}
+  nav.bottomnav button span{font-size:10px; font-weight:600;}
+  nav.bottomnav button.active{color: var(--celeste-bright);}
 
   ::-webkit-scrollbar{width:0;height:0;}
 </style>
@@ -467,7 +411,7 @@
 <div id="app">
 
   <header class="topbar">
-    <img src="logo.png" alt="Logo AM 610">
+    <div class="chip"><img src="logo.png" alt="Logo AM 610"></div>
     <div class="station-meta">
       <div class="name">AM 610</div>
       <div class="loc">General San Martín</div>
@@ -477,51 +421,50 @@
 
   <main>
 
-    <!-- ===================== VIVO ===================== -->
     <section class="view active" id="view-vivo">
       <div class="hero">
         <p class="tagline">La radio de toda la ciudad</p>
-        <h1 class="freq-title">610<small>AM · General San Martín</small></h1>
 
-        <div class="dial-wrap">
-          <div class="dial-track">
-            <div class="dial-ticks" id="dialTicks"></div>
-            <div class="dial-needle"></div>
+        <div class="disc-wrap">
+          <div class="disc-glow" id="discGlow"></div>
+          <div class="disc" id="disc">
+            <div class="disc-inner"><img src="logo.png" alt="AM 610"></div>
+            <div class="disc-pin"></div>
           </div>
-          <div class="dial-labels"><span>55</span><span>70</span><span>88</span><span>106</span><span>120</span><span>140</span><span>160</span></div>
         </div>
 
-        <div class="player-row">
-          <button class="play-btn" id="playBtn" aria-label="Reproducir">
-            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          </button>
-          <div class="now-playing">
-            <p class="status" id="playStatus">Tocá play para escuchar</p>
-            <p class="title">Transmisión en vivo · AM 610</p>
-          </div>
-          <div class="eq" id="eq"><span></span><span></span><span></span><span></span></div>
+        <h1 class="freq-title">610 AM</h1>
+        <p class="freq-sub">General San Martín</p>
+
+        <div class="wave" id="wave">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
         </div>
+
+        <p class="status-line" id="playStatus">Tocá play para escuchar</p>
+
+        <button class="play-btn" id="playBtn" aria-label="Reproducir">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
       </div>
 
       <div class="section-pad">
         <div class="section-head">
           <h2>Al aire ahora</h2>
-          <span class="sub" id="jumpProg">Ver grilla →</span>
+          <span class="link" id="jumpProg">Ver grilla →</span>
         </div>
       </div>
-      <div class="show-list" id="onairNow"></div>
+      <div id="onairNow"></div>
 
       <div class="note-card">
         Esta app se conecta directo a tu transmisión en vivo. Si el audio no arranca, revisá que el stream esté online.
       </div>
     </section>
 
-    <!-- ===================== PROGRAMACIÓN ===================== -->
     <section class="view" id="view-prog">
-      <div class="section-pad">
-        <div class="section-head">
-          <h2>Programación</h2>
-        </div>
+      <div class="section-pad" style="padding-top:20px;">
+        <div class="section-head"><h2>Programación</h2></div>
       </div>
       <div class="day-tabs" id="dayTabs"></div>
       <div class="show-list" id="showList"></div>
@@ -530,29 +473,26 @@
       </div>
     </section>
 
-    <!-- ===================== CONTACTO ===================== -->
     <section class="view" id="view-contacto">
-      <div class="section-pad">
-        <div class="section-head">
-          <h2>Contacto</h2>
-        </div>
+      <div class="section-pad" style="padding-top:20px;">
+        <div class="section-head"><h2>Contacto</h2></div>
       </div>
-      <div class="contact-list">
+      <div class="contact-grid">
         <a class="contact-card ig" href="#">
           <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 2.1.24 2.6.44a4.6 4.6 0 011.66 1.08 4.6 4.6 0 011.08 1.66c.2.5.39 1.43.44 2.6.06 1.25.07 1.65.07 4.85s0 3.6-.07 4.85c-.05 1.17-.24 2.1-.44 2.6a4.6 4.6 0 01-1.08 1.66 4.6 4.6 0 01-1.66 1.08c-.5.2-1.43.39-2.6.44-1.25.06-1.65.07-4.85.07s-3.6 0-4.85-.07c-1.17-.05-2.1-.24-2.6-.44a4.6 4.6 0 01-1.66-1.08 4.6 4.6 0 01-1.08-1.66c-.2-.5-.39-1.43-.44-2.6C2.21 15.6 2.2 15.2 2.2 12s0-3.6.07-4.85c.05-1.17.24-2.1.44-2.6a4.6 4.6 0 011.08-1.66A4.6 4.6 0 015.45 2.7c.5-.2 1.43-.39 2.6-.44C9.3 2.21 9.7 2.2 12 2.2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zm5.2-8.4a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z"/></svg></div>
-          <div class="txt"><p class="label">Instagram</p><p class="value">@ agregá tu usuario</p></div>
+          <div><p class="label">Instagram</p><p class="value">agregá tu usuario</p></div>
         </a>
         <a class="contact-card fb" href="#">
           <div class="icon"><svg viewBox="0 0 24 24"><path d="M13.5 21v-8.1h2.7l.4-3.2h-3.1V7.6c0-.9.25-1.5 1.6-1.5h1.6V3.2C15.9 3.1 15 3 14 3c-2.7 0-4.5 1.6-4.5 4.6v2.1H6.8v3.2h2.7V21h4z"/></svg></div>
-          <div class="txt"><p class="label">Facebook</p><p class="value">agregá tu página</p></div>
+          <div><p class="label">Facebook</p><p class="value">agregá tu página</p></div>
         </a>
         <a class="contact-card wa" href="#">
           <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.1-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.7.9-.3.2-.5.1a6.6 6.6 0 01-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3a2.7 2.7 0 00-.9 2c0 1.2.9 2.3 1 2.5.1.1 1.8 2.8 4.4 3.8.6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-.9.1-1.1-.1-.1-.2-.2-.4-.3z"/></svg></div>
-          <div class="txt"><p class="label">WhatsApp</p><p class="value">agregá tu número</p></div>
+          <div><p class="label">WhatsApp</p><p class="value">agregá tu número</p></div>
         </a>
         <a class="contact-card em" href="#">
           <div class="icon"><svg viewBox="0 0 24 24"><path d="M2 5h20v14H2V5zm2 2v.5l8 5.5 8-5.5V7l-8 5.5L4 7z"/></svg></div>
-          <div class="txt"><p class="label">Email</p><p class="value">agregá tu correo</p></div>
+          <div><p class="label">Email</p><p class="value">agregá tu correo</p></div>
         </a>
       </div>
 
@@ -570,6 +510,16 @@
     </section>
 
   </main>
+
+  <div class="mini-player" id="miniPlayer">
+    <div class="chip"><img src="logo.png" alt="AM 610"></div>
+    <div class="txt">
+      <div class="t1">AL AIRE</div>
+      <div class="t2">AM 610 · Transmisión en vivo</div>
+    </div>
+    <div class="mini-eq" id="miniEq"><span></span><span></span><span></span><span></span></div>
+    <button class="mini-btn" id="miniBtn"><svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+  </div>
 
   <nav class="bottomnav">
     <button class="active" data-view="vivo">
@@ -589,7 +539,6 @@
 </div>
 
 <script>
-/* ---------------- STREAM ---------------- */
 const STREAM_URL = "https://ohradio.cc:8014/stream";
 const audio = new Audio(STREAM_URL);
 audio.preload = "none";
@@ -597,7 +546,12 @@ audio.preload = "none";
 const playBtn = document.getElementById('playBtn');
 const playIcon = document.getElementById('playIcon');
 const playStatus = document.getElementById('playStatus');
-const eq = document.getElementById('eq');
+const wave = document.getElementById('wave');
+const disc = document.getElementById('disc');
+const discGlow = document.getElementById('discGlow');
+const miniPlayer = document.getElementById('miniPlayer');
+const miniEq = document.getElementById('miniEq');
+const miniBtn = document.getElementById('miniBtn');
 let isPlaying = false;
 
 const ICON_PLAY = '<path d="M8 5v14l11-7z"/>';
@@ -610,19 +564,24 @@ function setBuffering(){
 function setLive(){
   playStatus.textContent = "AL AIRE";
   playStatus.classList.remove('buffering');
+  miniPlayer.classList.add('show');
 }
 function setStopped(){
   playStatus.textContent = "Tocá play para escuchar";
   playStatus.classList.remove('buffering');
+  miniPlayer.classList.remove('show');
 }
 
-playBtn.addEventListener('click', () => {
+function togglePlay(){
   if (!isPlaying){
     setBuffering();
     audio.play().then(() => {
       isPlaying = true;
       playIcon.innerHTML = ICON_PAUSE;
-      eq.classList.add('playing');
+      wave.classList.add('playing');
+      disc.classList.add('playing');
+      discGlow.classList.add('playing');
+      miniEq.classList.add('playing');
     }).catch(() => {
       setStopped();
       playStatus.textContent = "No se pudo conectar";
@@ -631,23 +590,18 @@ playBtn.addEventListener('click', () => {
     audio.pause();
     isPlaying = false;
     playIcon.innerHTML = ICON_PLAY;
-    eq.classList.remove('playing');
+    wave.classList.remove('playing');
+    disc.classList.remove('playing');
+    discGlow.classList.remove('playing');
     setStopped();
   }
-});
+}
+playBtn.addEventListener('click', togglePlay);
+miniBtn.addEventListener('click', togglePlay);
 audio.addEventListener('playing', setLive);
 audio.addEventListener('waiting', setBuffering);
 audio.addEventListener('error', () => { setStopped(); playStatus.textContent = "No se pudo conectar"; });
 
-/* ---------------- DIAL TICKS ---------------- */
-const dialTicks = document.getElementById('dialTicks');
-for (let i=0;i<29;i++){
-  const t = document.createElement('span');
-  if (i % 4 === 0) t.classList.add('major');
-  dialTicks.appendChild(t);
-}
-
-/* ---------------- NAV / VIEWS ---------------- */
 const views = { vivo: 'view-vivo', prog: 'view-prog', contacto: 'view-contacto' };
 document.querySelectorAll('.bottomnav button').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
@@ -661,7 +615,6 @@ function switchView(key){
   document.querySelector('main').scrollTo(0,0);
 }
 
-/* ---------------- PROGRAMACIÓN (datos de ejemplo) ---------------- */
 const SCHEDULE = {
   "Lun–Vie": [
     { time:"06:00", end:"09:00", name:"Buen Día San Martín", host:"Magazine matutino" },
@@ -734,17 +687,17 @@ function renderOnairNow(){
   onairNow.innerHTML = '';
   const card = document.createElement('div');
   if (onair){
-    card.className = 'show-card onair';
+    card.className = 'onair-card';
     card.innerHTML = `
-      <div class="time">${onair.time}<small>${onair.end}</small></div>
+      <span class="badge">AHORA</span>
       <div class="info">
-        <p class="sname">${onair.name}<span class="onair-badge">AL AIRE</span></p>
-        <p class="shost">${onair.host}</p>
+        <p class="sname">${onair.name}</p>
+        <p class="shost">${onair.host} · ${onair.time}–${onair.end}</p>
       </div>`;
   } else {
-    card.className = 'show-card';
+    card.className = 'onair-card';
     card.innerHTML = `
-      <div class="time">—</div>
+      <span class="badge">AHORA</span>
       <div class="info">
         <p class="sname">Música 610</p>
         <p class="shost">Fuera de programación especial</p>
@@ -755,7 +708,6 @@ function renderOnairNow(){
 renderOnairNow();
 setInterval(renderOnairNow, 60000);
 
-/* ---------------- SERVICE WORKER (PWA instalable) ---------------- */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js').catch(() => {});
