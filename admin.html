@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel admin · AM 610</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F14; --card:#151C24; --line:rgba(255,255,255,0.10);
+    --text:#F3F5F7; --dim:#9AA5B1; --celeste:#6FA8DC; --sol:#F2A93B; --red:#e6534f; --green:#2fbf71;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'Work Sans',sans-serif; padding:20px;}
+  .wrap{max-width:720px; margin:0 auto;}
+  h1{font-family:'Big Shoulders Display',sans-serif; font-size:28px; text-transform:uppercase; margin:0 0 4px;}
+  .sub{color:var(--dim); font-size:13px; margin:0 0 28px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:18px;}
+  .card h2{font-size:14px; text-transform:uppercase; letter-spacing:0.05em; color:var(--celeste); margin:0 0 16px;}
+  label{display:block; font-size:12px; color:var(--dim); margin:12px 0 5px; font-weight:600;}
+  input[type=text], input[type=password], input[type=email], input[type=url]{
+    width:100%; background:#0F151B; border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; border-radius:8px; font-size:14px; font-family:inherit;
+  }
+  input:focus{outline:none; border-color:var(--celeste);}
+  button{
+    font-family:inherit; font-weight:700; font-size:14px; border:none; border-radius:8px;
+    padding:11px 20px; cursor:pointer;
+  }
+  .btn-primary{background:var(--celeste); color:#0B0F14;}
+  .btn-primary:hover{opacity:0.9;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--text);}
+  .btn-danger{background:transparent; border:1px solid var(--red); color:var(--red); font-size:12px; padding:6px 10px;}
+
+  #gate{max-width:360px; margin:80px auto; text-align:center;}
+  #gate input{margin-bottom:12px;}
+  #gate .err{color:var(--red); font-size:13px; min-height:18px; margin-top:8px;}
+
+  #panel{display:none;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  .day-tabs{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .day-tabs button{background:#0F151B; border:1px solid var(--line); color:var(--dim); padding:7px 14px; border-radius:999px; font-size:12.5px;}
+  .day-tabs button.active{background:var(--celeste); color:#0B0F14; border-color:var(--celeste);}
+
+  .show-row{
+    display:grid; grid-template-columns: 80px 80px 1fr 1fr 34px;
+    gap:8px; align-items:center; margin-bottom:8px;
+  }
+  .show-row input{font-size:12.5px; padding:8px;}
+
+  .top-actions{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+  #saveStatus{font-size:13px; margin-left:12px;}
+  #saveStatus.ok{color:var(--green);}
+  #saveStatus.err{color:var(--red);}
+
+  .add-row{background:transparent; border:1px dashed var(--line); color:var(--celeste); width:100%; padding:9px; border-radius:8px; font-size:12.5px; margin-top:4px;}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>AM 610</h1>
+  <p class="sub">Panel de administración</p>
+  <input type="password" id="pwInput" placeholder="Contraseña">
+  <button class="btn-primary" style="width:100%" onclick="tryLogin()">Entrar</button>
+  <p class="err" id="gateErr"></p>
+</div>
+
+<div class="wrap" id="panel">
+  <div class="top-actions">
+    <div>
+      <h1>Panel de control</h1>
+      <p class="sub" style="margin:0;">AM 610 · General San Martín</p>
+    </div>
+    <div>
+      <button class="btn-primary" onclick="saveAll()">Guardar cambios</button>
+      <span id="saveStatus"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Transmisión en vivo</h2>
+    <label>URL del stream</label>
+    <input type="url" id="streamUrl" placeholder="https://...">
+  </div>
+
+  <div class="card">
+    <h2>Contacto</h2>
+    <div class="row2">
+      <div><label>Instagram (usuario, sin @)</label><input type="text" id="c-ig"></div>
+      <div><label>Facebook (nombre de página)</label><input type="text" id="c-fb"></div>
+      <div><label>WhatsApp (con código de país)</label><input type="text" id="c-wa" placeholder="5491122334455"></div>
+      <div><label>Email</label><input type="email" id="c-em"></div>
+    </div>
+    <label>Dirección del estudio</label>
+    <input type="text" id="c-addr">
+  </div>
+
+  <div class="card">
+    <h2>Programación</h2>
+    <div class="day-tabs" id="adminDayTabs"></div>
+    <div id="showRows"></div>
+    <button class="add-row" onclick="addShowRow()">+ Agregar programa</button>
+  </div>
+</div>
+
+<script>
+const FN_URL = "/.netlify/functions/config";
+let adminPassword = "";
+let config = null;
+let activeDay = "Lun–Vie";
+const DAYS = ["Lun–Vie", "Sáb", "Dom"];
+
+async function tryLogin(){
+  const pw = document.getElementById('pwInput').value;
+  document.getElementById('gateErr').textContent = "Verificando...";
+  try{
+    const res = await fetch(FN_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'x-admin-password': pw},
+      body: JSON.stringify({ __authCheck: true })
+    });
+    // Si la contraseña es incorrecta, el server devuelve 401.
+    if (res.status === 401){
+      document.getElementById('gateErr').textContent = "Contraseña incorrecta.";
+      return;
+    }
+    adminPassword = pw;
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+    await loadConfig();
+  } catch(e){
+    document.getElementById('gateErr').textContent = "Error de conexión.";
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+
+async function loadConfig(){
+  const res = await fetch(FN_URL);
+  config = await res.json();
+  document.getElementById('streamUrl').value = config.streamUrl || "";
+  document.getElementById('c-ig').value = config.contact.instagram || "";
+  document.getElementById('c-fb').value = config.contact.facebook || "";
+  document.getElementById('c-wa').value = config.contact.whatsapp || "";
+  document.getElementById('c-em').value = config.contact.email || "";
+  document.getElementById('c-addr').value = config.contact.address || "";
+
+  const tabs = document.getElementById('adminDayTabs');
+  tabs.innerHTML = '';
+  DAYS.forEach(d => {
+    const b = document.createElement('button');
+    b.textContent = d;
+    if (d === activeDay) b.classList.add('active');
+    b.onclick = () => { activeDay = d; renderShowRows(); tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x.textContent===d)); };
+    tabs.appendChild(b);
+  });
+  renderShowRows();
+}
+
+function renderShowRows(){
+  const wrap = document.getElementById('showRows');
+  wrap.innerHTML = '';
+  (config.schedule[activeDay] || []).forEach((s, i) => {
+    wrap.appendChild(buildRow(s, i));
+  });
+}
+
+function buildRow(s, i){
+  const row = document.createElement('div');
+  row.className = 'show-row';
+  row.innerHTML = `
+    <input type="text" value="${s.time}" placeholder="06:00" data-f="time">
+    <input type="text" value="${s.end}" placeholder="09:00" data-f="end">
+    <input type="text" value="${s.name}" placeholder="Nombre del programa" data-f="name">
+    <input type="text" value="${s.host}" placeholder="Locutor / descripción" data-f="host">
+    <button class="btn-danger" onclick="removeShowRow(${i})">✕</button>
+  `;
+  row.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      config.schedule[activeDay][i][inp.dataset.f] = inp.value;
+    });
+  });
+  return row;
+}
+
+function addShowRow(){
+  if (!config.schedule[activeDay]) config.schedule[activeDay] = [];
+  config.schedule[activeDay].push({ time:"00:00", end:"00:00", name:"", host:"" });
+  renderShowRows();
+}
+function removeShowRow(i){
+  config.schedule[activeDay].splice(i,1);
+  renderShowRows();
+}
+
+async function saveAll(){
+  config.streamUrl = document.getElementById('streamUrl').value.trim();
+  config.contact = {
+    instagram: document.getElementById('c-ig').value.trim(),
+    facebook: document.getElementById('c-fb').value.trim(),
+    whatsapp: document.getElementById('c-wa').value.trim(),
+    email: document.getElementById('c-em').value.trim(),
+    address: document.getElementById('c-addr').value.trim()
+  };
+  const status = document.getElementById('saveStatus');
+  status.textContent = "Guardando...";
+  status.className = "";
+  try{
+    const res = await fetch(FN_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'x-admin-password': adminPassword},
+      body: JSON.stringify(config)
+    });
+    if (res.ok){
+      status.textContent = "✓ Guardado";
+      status.className = "ok";
+    } else {
+      const err = await res.json();
+      status.textContent = "Error: " + (err.error || res.status);
+      status.className = "err";
+    }
+  } catch(e){
+    status.textContent = "Error de conexión";
+    status.className = "err";
+  }
+  setTimeout(() => { status.textContent = ""; }, 4000);
+}
+</script>
+</body>
+</html>

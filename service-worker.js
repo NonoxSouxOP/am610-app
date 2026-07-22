@@ -6,6 +6,8 @@ const APP_SHELL = [
   "./index.html",
   "./manifest.json",
   "./logo.png",
+  "./logo-full.png",
+  "./wallpaper.png",
   "./icon-192.png",
   "./icon-512.png"
 ];
@@ -33,6 +35,11 @@ self.addEventListener("fetch", (event) => {
 
   // Nunca interceptar el stream de audio en vivo: siempre red directa.
   if (url.hostname.includes("ohradio.cc")) {
+    return;
+  }
+
+  // Nunca cachear la función de configuración: siempre hay que pedir el dato más nuevo.
+  if (url.pathname.startsWith("/.netlify/functions/")) {
     return;
   }
 
