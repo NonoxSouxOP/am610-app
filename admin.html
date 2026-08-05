@@ -127,6 +127,12 @@ async function tryLogin(){
       document.getElementById('gateErr').textContent = "Contraseña incorrecta.";
       return;
     }
+    if (!res.ok){
+      let detail = "";
+      try{ const j = await res.json(); detail = j.error || ""; }catch(e){}
+      document.getElementById('gateErr').textContent = "Error del servidor (" + res.status + "). " + detail;
+      return;
+    }
     adminPassword = pw;
     document.getElementById('gate').style.display = 'none';
     document.getElementById('panel').style.display = 'block';
@@ -138,8 +144,27 @@ async function tryLogin(){
 document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
 
 async function loadConfig(){
-  const res = await fetch(FN_URL);
+  let res;
+  try{
+    res = await fetch(FN_URL);
+  } catch(e){
+    document.getElementById('saveStatus').textContent = "No se pudo conectar con la función.";
+    document.getElementById('saveStatus').className = "err";
+    return;
+  }
+  if (!res.ok){
+    let detail = "";
+    try{ const j = await res.json(); detail = j.error || ""; }catch(e){}
+    document.getElementById('saveStatus').textContent = "Error " + res.status + " al leer la config. " + detail;
+    document.getElementById('saveStatus').className = "err";
+    return;
+  }
   config = await res.json();
+  if (!config || !config.contact || !config.schedule){
+    document.getElementById('saveStatus').textContent = "La función respondió con datos incompletos.";
+    document.getElementById('saveStatus').className = "err";
+    return;
+  }
   document.getElementById('streamUrl').value = config.streamUrl || "";
   document.getElementById('c-ig').value = config.contact.instagram || "";
   document.getElementById('c-fb').value = config.contact.facebook || "";
