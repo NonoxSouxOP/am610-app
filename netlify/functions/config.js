@@ -4,7 +4,7 @@
 // El panel admin.html usa POST, que exige la contraseña de administrador
 // guardada como variable de entorno (nunca queda en el código ni en GitHub).
 
-const { getStore } = require("@netlify/blobs");
+import { getStore } from "@netlify/blobs";
 
 const DEFAULT_CONFIG = {
   streamUrl: "https://ohradio.cc:8014/stream",
@@ -37,7 +37,7 @@ const DEFAULT_CONFIG = {
   }
 };
 
-exports.handler = async (event) => {
+export default async (req) => {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -45,50 +45,43 @@ exports.handler = async (event) => {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
+  if (req.method === "OPTIONS") {
+    return new Response("", { status: 204, headers });
   }
 
   const store = getStore("am610-config");
 
-  if (event.httpMethod === "GET") {
+  if (req.method === "GET") {
     const data = await store.get("config", { type: "json" });
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(data || DEFAULT_CONFIG)
-    };
+    return new Response(JSON.stringify(data || DEFAULT_CONFIG), { status: 200, headers });
   }
 
-  if (event.httpMethod === "POST") {
-    const providedPassword = event.headers["x-admin-password"];
+  if (req.method === "POST") {
+    const providedPassword = req.headers.get("x-admin-password");
     if (!process.env.ADMIN_PASSWORD || providedPassword !== process.env.ADMIN_PASSWORD) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: "Contraseña incorrecta" })
-      };
+      return new Response(JSON.stringify({ error: "Contraseña incorrecta" }), { status: 401, headers });
     }
 
     let payload;
     try {
-      payload = JSON.parse(event.body);
+      payload = await req.json();
     } catch (e) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "JSON inválido" }) };
+      return new Response(JSON.stringify({ error: "JSON inválido" }), { status: 400, headers });
     }
 
-    // Chequeo de contraseña sin tocar el storage (usado por el panel al iniciar sesión)
     if (payload.__authCheck) {
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
     }
 
     if (!payload.streamUrl || !payload.schedule || !payload.contact) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "Faltan campos requeridos" }) };
+      return new Response(JSON.stringify({ error: "Faltan campos requeridos" }), { status: 400, headers });
     }
 
     await store.setJSON("config", payload);
-    return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
   }
 
-  return { statusCode: 405, headers, body: JSON.stringify({ error: "Método no permitido" }) };
+  return new Response(JSON.stringify({ error: "Método no permitido" }), { status: 405, headers });
 };
+
+export const config = { path: "/.netlify/functions/config" };
