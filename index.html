@@ -664,34 +664,31 @@ function switchView(key){
   document.querySelector('main').scrollTo(0,0);
 }
 
-let SCHEDULE = {
-  "Lun–Vie": [
-    { time:"06:00", end:"09:00", name:"Buen Día San Martín", host:"Magazine matutino" },
-    { time:"09:00", end:"12:00", name:"Mediomundo", host:"Actualidad y música" },
-    { time:"12:00", end:"14:00", name:"La Mesa", host:"Entrevistas del mediodía" },
-    { time:"14:00", end:"17:00", name:"Tarde Nuestra", host:"Música y consultorio" },
-    { time:"17:00", end:"20:00", name:"Data Deportiva", host:"Deportes locales" },
-    { time:"20:00", end:"22:00", name:"Noche 610", host:"Selección musical" },
-  ],
-  "Sáb": [
-    { time:"08:00", end:"12:00", name:"Fin de Semana 610", host:"Magazine de sábado" },
-    { time:"12:00", end:"16:00", name:"Sport San Martín", host:"Deportes del fin de semana" },
-    { time:"16:00", end:"21:00", name:"Tarde de Clásicos", host:"Música seleccionada" },
-  ],
-  "Dom": [
-    { time:"09:00", end:"13:00", name:"Domingo en Familia", host:"Magazine dominical" },
-    { time:"13:00", end:"18:00", name:"Fútbol y algo más", host:"Cobertura deportiva" },
-    { time:"18:00", end:"21:00", name:"Cierre de Semana", host:"Música y repaso" },
-  ]
-};
+const ALL_DAYS = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const DAY_BY_JS_INDEX = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"]; // Date.getDay(): 0=Dom
+
+let SCHEDULE = [
+  { time:"06:00", end:"09:00", name:"Buen Día San Martín", host:"Magazine matutino", days:["Lun","Mar","Mié","Jue","Vie"] },
+  { time:"09:00", end:"12:00", name:"Mediomundo", host:"Actualidad y música", days:["Lun","Mar","Mié","Jue","Vie"] },
+  { time:"12:00", end:"14:00", name:"La Mesa", host:"Entrevistas del mediodía", days:["Lun","Mar","Mié","Jue","Vie"] },
+  { time:"14:00", end:"17:00", name:"Tarde Nuestra", host:"Música y consultorio", days:["Lun","Mar","Mié","Jue","Vie"] },
+  { time:"17:00", end:"20:00", name:"Data Deportiva", host:"Deportes locales", days:["Lun","Mar","Mié","Jue","Vie"] },
+  { time:"20:00", end:"22:00", name:"Noche 610", host:"Selección musical", days:["Lun","Mar","Mié","Jue","Vie"] },
+  { time:"08:00", end:"12:00", name:"Fin de Semana 610", host:"Magazine de sábado", days:["Sáb"] },
+  { time:"12:00", end:"16:00", name:"Sport San Martín", host:"Deportes del fin de semana", days:["Sáb"] },
+  { time:"16:00", end:"21:00", name:"Tarde de Clásicos", host:"Música seleccionada", days:["Sáb"] },
+  { time:"09:00", end:"13:00", name:"Domingo en Familia", host:"Magazine dominical", days:["Dom"] },
+  { time:"13:00", end:"18:00", name:"Fútbol y algo más", host:"Cobertura deportiva", days:["Dom"] },
+  { time:"18:00", end:"21:00", name:"Cierre de Semana", host:"Música y repaso", days:["Dom"] },
+];
 const dayTabs = document.getElementById('dayTabs');
 const showList = document.getElementById('showList');
 const onairNow = document.getElementById('onairNow');
-let activeDay = "Lun–Vie";
+let activeDay = DAY_BY_JS_INDEX[new Date().getDay()];
 
 function populateDayTabs(){
   dayTabs.innerHTML = '';
-  Object.keys(SCHEDULE).forEach(day => {
+  ALL_DAYS.forEach(day => {
     const b = document.createElement('button');
     b.textContent = day;
     if (day === activeDay) b.classList.add('active');
@@ -700,12 +697,18 @@ function populateDayTabs(){
   });
 }
 
+function showsForDay(day){
+  return SCHEDULE
+    .filter(s => Array.isArray(s.days) && s.days.includes(day))
+    .sort((a,b) => a.time.localeCompare(b.time));
+}
+
 function currentShowFor(day){
   const now = new Date();
-  const todayKey = [0,6].includes(now.getDay()) ? (now.getDay()===0?"Dom":"Sáb") : "Lun–Vie";
+  const todayKey = DAY_BY_JS_INDEX[now.getDay()];
   if (day !== todayKey) return null;
   const mins = now.getHours()*60 + now.getMinutes();
-  return (SCHEDULE[day] || []).find(s => {
+  return showsForDay(day).find(s => {
     const [h1,m1] = s.time.split(':').map(Number);
     const [h2,m2] = s.end.split(':').map(Number);
     const start = h1*60+m1, end = h2*60+m2;
@@ -717,8 +720,17 @@ function renderSchedule(){
   dayTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.textContent === activeDay));
   showList.innerHTML = '';
   const onair = currentShowFor(activeDay);
-  (SCHEDULE[activeDay] || []).forEach(s => {
-    const isOn = onair && onair.name === s.name;
+  const shows = showsForDay(activeDay);
+  if (!shows.length){
+    const empty = document.createElement('div');
+    empty.className = 'note-card';
+    empty.style.margin = '4px 0 0';
+    empty.textContent = 'No hay programas cargados para este día.';
+    showList.appendChild(empty);
+    return;
+  }
+  shows.forEach(s => {
+    const isOn = onair && onair.name === s.name && onair.time === s.time;
     const card = document.createElement('div');
     card.className = 'show-card' + (isOn ? ' onair' : '');
     card.innerHTML = `
@@ -733,7 +745,7 @@ function renderSchedule(){
 
 function renderOnairNow(){
   const now = new Date();
-  const todayKey = [0,6].includes(now.getDay()) ? (now.getDay()===0?"Dom":"Sáb") : "Lun–Vie";
+  const todayKey = DAY_BY_JS_INDEX[now.getDay()];
   const onair = currentShowFor(todayKey);
   onairNow.innerHTML = '';
   const card = document.createElement('div');
@@ -803,7 +815,7 @@ async function loadConfig(){
       audio.src = cfg.streamUrl;
       if (wasPlaying) togglePlay();
     }
-    if (cfg.schedule && Object.keys(cfg.schedule).length){
+    if (Array.isArray(cfg.schedule) && cfg.schedule.length){
       SCHEDULE = cfg.schedule;
       populateDayTabs();
       renderSchedule();

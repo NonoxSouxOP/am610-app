@@ -44,11 +44,18 @@
   .day-tabs button{background:#0F151B; border:1px solid var(--line); color:var(--dim); padding:7px 14px; border-radius:999px; font-size:12.5px;}
   .day-tabs button.active{background:var(--celeste); color:#0B0F14; border-color:var(--celeste);}
 
+  .show-card-admin{background:#0F151B; border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px;}
   .show-row{
     display:grid; grid-template-columns: 80px 80px 1fr 1fr 34px;
-    gap:8px; align-items:center; margin-bottom:8px;
+    gap:8px; align-items:center; margin-bottom:10px;
   }
   .show-row input{font-size:12.5px; padding:8px;}
+  .day-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .day-chip{
+    background:transparent; border:1px solid var(--line); color:var(--dim);
+    padding:5px 10px; border-radius:999px; font-size:11.5px; cursor:pointer;
+  }
+  .day-chip.active{background:var(--sol); border-color:var(--sol); color:#0B0F14; font-weight:700;}
 
   .top-actions{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
   #saveStatus{font-size:13px; margin-left:12px;}
@@ -100,6 +107,7 @@
 
   <div class="card">
     <h2>Programación</h2>
+    <p class="small" style="margin:-6px 0 14px;">Cada programa tiene sus propias casillas de días: tocá los días en los que va al aire (podés elegir uno o varios). El filtro de abajo solo cambia qué ves en esta lista.</p>
     <div class="day-tabs" id="adminDayTabs"></div>
     <div id="showRows"></div>
     <button class="add-row" onclick="addShowRow()">+ Agregar programa</button>
@@ -110,8 +118,9 @@
 const FN_URL = "/.netlify/functions/config";
 let adminPassword = "";
 let config = null;
-let activeDay = "Lun–Vie";
-const DAYS = ["Lun–Vie", "Sáb", "Dom"];
+let activeFilterDay = "Todos";
+const ALL_DAYS = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const FILTER_DAYS = ["Todos", ...ALL_DAYS];
 
 async function tryLogin(){
   const pw = document.getElementById('pwInput').value;
@@ -165,6 +174,11 @@ async function loadConfig(){
     document.getElementById('saveStatus').className = "err";
     return;
   }
+  // Compatibilidad: si la config vieja todavía tiene el formato por bloques (Lun–Vie/Sáb/Dom), la convertimos.
+  if (!Array.isArray(config.schedule)){
+    config.schedule = migrateOldSchedule(config.schedule);
+  }
+
   document.getElementById('streamUrl').value = config.streamUrl || "";
   document.getElementById('c-ig').value = config.contact.instagram || "";
   document.getElementById('c-fb').value = config.contact.facebook || "";
@@ -174,25 +188,47 @@ async function loadConfig(){
 
   const tabs = document.getElementById('adminDayTabs');
   tabs.innerHTML = '';
-  DAYS.forEach(d => {
+  FILTER_DAYS.forEach(d => {
     const b = document.createElement('button');
     b.textContent = d;
-    if (d === activeDay) b.classList.add('active');
-    b.onclick = () => { activeDay = d; renderShowRows(); tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x.textContent===d)); };
+    if (d === activeFilterDay) b.classList.add('active');
+    b.onclick = () => { activeFilterDay = d; renderShowRows(); tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x.textContent===d)); };
     tabs.appendChild(b);
   });
   renderShowRows();
 }
 
+function migrateOldSchedule(oldSchedule){
+  const map = { "Lun–Vie": ["Lun","Mar","Mié","Jue","Vie"], "Sáb": ["Sáb"], "Dom": ["Dom"] };
+  const flat = [];
+  Object.keys(oldSchedule || {}).forEach(groupKey => {
+    (oldSchedule[groupKey] || []).forEach(s => {
+      flat.push({ ...s, days: map[groupKey] || [] });
+    });
+  });
+  return flat;
+}
+
 function renderShowRows(){
   const wrap = document.getElementById('showRows');
   wrap.innerHTML = '';
-  (config.schedule[activeDay] || []).forEach((s, i) => {
-    wrap.appendChild(buildRow(s, i));
+  config.schedule.forEach((s, i) => {
+    if (!Array.isArray(s.days)) s.days = [];
+    if (activeFilterDay !== 'Todos' && !s.days.includes(activeFilterDay)) return;
+    wrap.appendChild(buildShowCard(s, i));
   });
+  if (!wrap.children.length){
+    const empty = document.createElement('p');
+    empty.className = 'small';
+    empty.textContent = 'No hay programas para este filtro todavía.';
+    wrap.appendChild(empty);
+  }
 }
 
-function buildRow(s, i){
+function buildShowCard(s, i){
+  const card = document.createElement('div');
+  card.className = 'show-card-admin';
+
   const row = document.createElement('div');
   row.className = 'show-row';
   row.innerHTML = `
@@ -204,19 +240,42 @@ function buildRow(s, i){
   `;
   row.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('input', () => {
-      config.schedule[activeDay][i][inp.dataset.f] = inp.value;
+      config.schedule[i][inp.dataset.f] = inp.value;
     });
   });
-  return row;
+
+  const chips = document.createElement('div');
+  chips.className = 'day-chips';
+  ALL_DAYS.forEach(day => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'day-chip' + (s.days.includes(day) ? ' active' : '');
+    chip.textContent = day;
+    chip.onclick = () => {
+      const idx = config.schedule[i].days.indexOf(day);
+      if (idx === -1) config.schedule[i].days.push(day);
+      else config.schedule[i].days.splice(idx, 1);
+      chip.classList.toggle('active');
+      // Si el filtro activo ya no aplica a este programa, lo saco de la vista.
+      if (activeFilterDay !== 'Todos' && !config.schedule[i].days.includes(activeFilterDay)){
+        renderShowRows();
+      }
+    };
+    chips.appendChild(chip);
+  });
+
+  card.appendChild(row);
+  card.appendChild(chips);
+  return card;
 }
 
 function addShowRow(){
-  if (!config.schedule[activeDay]) config.schedule[activeDay] = [];
-  config.schedule[activeDay].push({ time:"00:00", end:"00:00", name:"", host:"" });
+  const defaultDays = activeFilterDay !== 'Todos' ? [activeFilterDay] : [];
+  config.schedule.push({ time:"00:00", end:"00:00", name:"", host:"", days: defaultDays });
   renderShowRows();
 }
 function removeShowRow(i){
-  config.schedule[activeDay].splice(i,1);
+  config.schedule.splice(i,1);
   renderShowRows();
 }
 
