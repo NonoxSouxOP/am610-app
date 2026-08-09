@@ -35,7 +35,7 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0; height:100%;}
   body{
     font-family:'Work Sans', sans-serif;
     color: var(--text);
@@ -47,11 +47,14 @@
 
   #app{
     max-width: 480px;
+    width: 100%;
     margin: 0 auto;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     display:flex;
     flex-direction:column;
     position:relative;
+    overflow:hidden;
     background-image: url('wallpaper.png');
     background-size: cover;
     background-position: center top;
@@ -393,12 +396,10 @@
   .studio-card .addr .value{font-size:13.5px; font-weight:600; margin:0;}
 
   .mini-player{
-    position:fixed;
-    left:50%;
-    transform:translateX(-50%);
+    position:absolute;
+    left:12px;
+    right:12px;
     bottom:64px;
-    width:calc(100% - 24px);
-    max-width:456px;
     background: var(--glass-strong);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
@@ -429,12 +430,10 @@
   .mini-player .mini-btn svg{width:15px; height:15px; fill:#fff;}
 
   nav.bottomnav{
-    position:fixed;
-    left:50%;
-    transform:translateX(-50%);
+    position:absolute;
+    left:0;
+    right:0;
     bottom:0;
-    width:100%;
-    max-width:480px;
     background: var(--glass-strong);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
@@ -453,6 +452,27 @@
   nav.bottomnav button.active{color: var(--celeste-deep);}
 
   ::-webkit-scrollbar{width:0;height:0;}
+
+  /* ---------------- MODO ESCRITORIO: la app se ve como un celular centrado ---------------- */
+  @media (min-width: 620px){
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      background: radial-gradient(circle at 50% 30%, #1c2733 0%, #0a0d11 70%);
+      padding: 24px;
+    }
+    #app{
+      height: 852px;         /* alto típico de un celular estándar (medidas base tipo iPhone/Android) */
+      max-height: 92vh;      /* nunca se pasa de la ventana si la pantalla es más chica */
+      border-radius: 34px;
+      border: 8px solid #12161b;
+      box-shadow:
+        0 40px 90px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(255,255,255,0.05);
+    }
+  }
 </style>
 </head>
 <body>
