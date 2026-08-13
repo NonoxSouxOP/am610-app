@@ -28,6 +28,11 @@ const DEFAULT_CONFIG = {
     whatsapp: "",
     email: "",
     address: ""
+  },
+  video: {
+    youtube: "",
+    kick: "",
+    twitch: ""
   }
 };
 
