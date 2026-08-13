@@ -99,6 +99,7 @@
   .icn-live{background:rgba(242,169,59,0.14);} .icn-live svg{fill:var(--sol);}
   .icn-contact{background:rgba(111,168,220,0.14);} .icn-contact svg{fill:var(--celeste-bright);}
   .icn-sched{background:rgba(62,203,131,0.14);} .icn-sched svg{fill:var(--green);}
+  .icn-video{background:rgba(239,90,86,0.14);} .icn-video svg{fill:var(--red);}
 
   .row2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .field{margin-bottom:14px;}
@@ -214,6 +215,26 @@
       <div class="field" style="margin-top:14px;">
         <label>Dirección del estudio</label>
         <input type="text" id="c-addr" oninput="markDirty()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="icn icn-video"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg></div>
+        <h2>Video en vivo</h2>
+        <span class="hint">Dejá vacíos los que no uses</span>
+      </div>
+      <div class="field">
+        <label>YouTube</label>
+        <input type="text" id="v-yt" placeholder="ID de canal (UC...), link del video en vivo, o ID del video" oninput="markDirty()">
+      </div>
+      <div class="field">
+        <label>Kick</label>
+        <input type="text" id="v-kick" placeholder="nombre de usuario (ej: am610radio)" oninput="markDirty()">
+      </div>
+      <div class="field">
+        <label>Twitch</label>
+        <input type="text" id="v-ttv" placeholder="nombre de usuario (ej: am610radio)" oninput="markDirty()">
       </div>
     </div>
 
@@ -361,6 +382,10 @@ async function loadConfig(){
   document.getElementById('c-wa').value = config.contact.whatsapp || "";
   document.getElementById('c-em').value = config.contact.email || "";
   document.getElementById('c-addr').value = config.contact.address || "";
+  if (!config.video) config.video = {};
+  document.getElementById('v-yt').value = config.video.youtube || "";
+  document.getElementById('v-kick').value = config.video.kick || "";
+  document.getElementById('v-ttv').value = config.video.twitch || "";
 
   const tabs = document.getElementById('adminDayTabs');
   tabs.innerHTML = '';
@@ -494,6 +519,11 @@ async function saveAll(){
     whatsapp: document.getElementById('c-wa').value.trim(),
     email: document.getElementById('c-em').value.trim(),
     address: document.getElementById('c-addr').value.trim()
+  };
+  config.video = {
+    youtube: document.getElementById('v-yt').value.trim(),
+    kick: document.getElementById('v-kick').value.trim(),
+    twitch: document.getElementById('v-ttv').value.trim()
   };
 
   const btn = document.getElementById('saveBtn');
